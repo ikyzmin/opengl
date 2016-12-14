@@ -1,150 +1,118 @@
-/*
- * Copyright (c) 2009, 2014 University of Michigan, Ann Arbor.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation,
- * advertising materials, and other materials related to such
- * distribution and use acknowledge that the software was developed
- * by the University of Michigan, Ann Arbor. The name of the University
- * may not be used to endorse or promote products derived from this
- * software without specific prior written permission.
- * THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
- * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
- * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- * Authors: Manoj Rajagopalan, Sugih Jamin
-*/
-#include <stdio.h>
-#include <stdlib.h>
 
-#if defined(__APPLE__)
-#include <GLUT/glut.h>
-#else
+/* Copyright (c) Mark J. Kilgard, 1997. */
+
+/* This program is freely distributable without licensing fees
+   and is provided without guarantee or warrantee expressed or
+   implied. This program is -not- in the public domain. */
+
+/* This program was requested by Patrick Earl; hopefully someone else
+   will write the equivalent Direct3D immediate mode program. */
+
 #include <GL/glut.h>
-#endif
 
-#define NENDS 2           /* number of end "points" to draw */
 
-GLdouble width, height;   /* window width and height */
-int wd;                   /* GLUT window handle */
-int ends[NENDS][2];       /* array of 2D points */
+float xRotated = 90.0, yRotated = 0.0, zRotated = 0.0;
 
-/* Program initialization NOT OpenGL/GLUT dependent,
-   as we haven't created a GLUT window yet */
-void
-init(void)
+//------------------------------  reshapeFunc  ---------------------------------
+
+
+void init(void)
 {
-    width  = 1280.0;                 /* initial window width and height, */
-    height = 800.0;                  /* within which we draw. */
-    ends[0][0] = (int)(0.25*width);  /* (0,0) is the lower left corner */
-    ends[0][1] = (int)(0.75*height);
-    ends[1][0] = (int)(0.75*width);
-    ends[1][1] = (int)(0.25*height);
+    GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+    GLfloat mat_shininess[] = { 50.0 };
+    GLfloat light_position[] = { 1.0, 1.0, 1.0, 0.0 };
+    glClearColor (0.0, 0.0, 0.0, 0.0);
+    glShadeModel (GL_SMOOTH);
 
-    return;
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_DEPTH_TEST);
 }
 
-/* Callback functions for GLUT */
-
-/* Draw the window - this is where all the GL actions are */
-void
-display(void)
+void reshapeFunc (int w, int h)
 {
-    int i;
-
-    /* clear the screen to white */
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    /* draw a black line */
-    glBegin(GL_LINES);
-    for (i = 0; i < NENDS; ++i) {
-        glVertex2iv((GLint *) ends[i]);
-    }
-    glEnd();
-    glFlush();
-
-    return;
-}
-
-/* Called when window is resized,
-   also when window is first created,
-   before the first call to display(). */
-void
-reshape(int w, int h)
-{
-    /* save new screen dimensions */
-    width = (GLdouble) w;
-    height = (GLdouble) h;
-
-    /* tell OpenGL to use the whole window for drawing */
-    glViewport(0, 0, (GLsizei) width, (GLsizei) height);
-
-    /* do an orthographic parallel projection with the coordinate
-       system set to first quadrant, limited by screen/window size */
-    glMatrixMode(GL_PROJECTION);
+    glMatrixMode (GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(0.0, width, 0.0, height, -1.f, 1.f);
+    if (w <= h)
+        glOrtho (-1.5, 1.5, -1.5*(GLfloat)h/(GLfloat)w,
+                 1.5*(GLfloat)h/(GLfloat)w, -10.0, 10.0);
+    else
+        glOrtho (-1.5*(GLfloat)w/(GLfloat)h,
+                 1.5*(GLfloat)w/(GLfloat)h, -1.5, 1.5, -10.0, 10.0);
+    glMatrixMode(GL_MODELVIEW);
 
-    return;
+   // gluPerspective (0.0, (GLdouble)w / (GLdouble)h, 0.5, 10.0);
+    glMatrixMode   (GL_MODELVIEW);
+    glViewport     (0, 0, w, h);
+}
+GLdouble eq[4];
+//------------------------------  Draw_Spheres   -------------------------------
+
+void Draw_Spheres (void)
+{
+    glMatrixMode   (GL_MODELVIEW);
+    glClear        (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glLoadIdentity ();
+    eq[0] = 0.0f;
+    eq[1] = 1.0f;
+    eq[2] = 0.0f;
+    eq[3] = 0.0f;
+    glColorMaterial (GL_FRONT,GL_DIFFUSE);
+    glEnable(GL_COLOR_MATERIAL);
+    glColor3f(1,1,0);
+    glPushMatrix ();
+    glClipPlane(GL_CLIP_PLANE0,eq);
+    glEnable(GL_CLIP_PLANE0);
+    glTranslated(0.5,0,0);
+    glRotatef(zRotated,0,1,0);
+    glTranslated(-0.5,0,0);
+    glutSolidTorus(0.05,0.1, 50, 50);
+    glDisable(GL_CLIP_PLANE0);
+
+    glTranslated(0.5,0.0,0.5);
+    glRotatef(180,1,1,0);
+    glutSolidTorus(0.05,0.1, 50, 50);
+    glTranslated(-0.5,0.0,-0.5);
+
+
+    glPopMatrix ();
+    glTranslated(0.5,0,0);
+    glRotatef(zRotated,0,1,0);
+    glutSolidSphere(0.5,50,50);
+
+    glutSwapBuffers();
 }
 
-void
-kbd(unsigned char key, int x, int y)
-{
-    switch((char)key) {
-        case 'q':
-        case 27:    /* ESC */
-            glutDestroyWindow(wd);
-            exit(0);
-        default:
-            break;
-    }
+//--------------------------------  idleFunc  ----------------------------------
 
-    return;
+void idleFunc (void)
+{
+    zRotated += 0.3;
+    glutPostRedisplay();
 }
 
-int
-main(int argc, char *argv[])
+//----------------------------------  main  ------------------------------------
+
+int main (int argc, char **argv)
 {
-    /* perform initialization NOT OpenGL/GLUT dependent,
-       as we haven't created a GLUT window yet */
+    glutInit               (&argc, argv);
+    glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+    glutInitWindowSize     (800, 700);
+    glutInitWindowPosition (700, 200);
+    glutCreateWindow       ("Sphere Rotating Animation");
     init();
+    glPolygonMode          (GL_FRONT_AND_BACK, GL_QUADS);
 
-    /* initialize GLUT, let it extract command-line
-       GLUT options that you may provide
-       - NOTE THE '&' BEFORE argc */
-    glutInit(&argc, argv);
+    glClearColor (0.0, 0.0, 0.0, 0.0);
 
-    /* specify the display to be single
-       buffered and color as RGBA values */
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGBA);
+    glutDisplayFunc (Draw_Spheres);
+    glutReshapeFunc (reshapeFunc);
+    glutIdleFunc    (idleFunc);
 
-    /* set the initial window size */
-    glutInitWindowSize((int) width, (int) height);
-
-    /* create the window and store the handle to it */
-    wd = glutCreateWindow("Experiment with line drawing" /* title */ );
-
-    /* --- register callbacks with GLUT --- */
-
-    /* register function to handle window resizes */
-    glutReshapeFunc(reshape);
-
-    /* register keyboard event processing function */
-    glutKeyboardFunc(kbd);
-
-    /* register function that draws in the window */
-    glutDisplayFunc(display);
-
-    /* init GL */
-    glClearColor(1.0, 1.0, 1.0, 0.0);
-    glColor3f(0.0, 0.0, 0.0);
-    glLineWidth(3.0);
-
-    /* start the GLUT main loop */
     glutMainLoop();
-
-    exit(0);
+    return 1;
 }
