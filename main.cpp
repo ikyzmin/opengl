@@ -74,7 +74,9 @@ void Draw_Spheres (void)
     glDisable(GL_CLIP_PLANE0);
 
     glTranslated(0.5,0.0,0.5);
-    glRotatef(180,1,1,0);
+    glRotatef(180,1,0,0);
+    glRotatef(90,0,0,1);
+    glRotatef(90,0,1,0);
     glutSolidTorus(0.05,0.1, 50, 50);
     glTranslated(-0.5,0.0,-0.5);
 
@@ -83,6 +85,14 @@ void Draw_Spheres (void)
     glTranslated(0.5,0,0);
     glRotatef(zRotated,0,1,0);
     glutSolidSphere(0.5,50,50);
+    glPopMatrix();
+
+    glTranslated(.0,0.0,-0.5);
+    glRotatef(180,1,0,0);
+    glRotatef(90,0,0,1);
+    glRotatef(-90,0,1,0);
+    glutSolidTorus(0.05,0.1, 50, 50);
+    glTranslated(-0.5,0.0,-0.5);
 
     glutSwapBuffers();
 }
@@ -91,7 +101,7 @@ void Draw_Spheres (void)
 
 void idleFunc (void)
 {
-    zRotated += 0.3;
+    zRotated += 0.4;
     glutPostRedisplay();
 }
 
@@ -114,5 +124,5 @@ int main (int argc, char **argv)
     glutIdleFunc    (idleFunc);
 
     glutMainLoop();
-    return 1;
+    return 0;
 }
